@@ -9,10 +9,10 @@ clc;
 N = 50;                % numero de observações
 P = 25;                % numero de preditores 
 k = 15;                % numero de elementos diferente de zero do vetor Beta original
-m = 50;                % numero de ciclos
+m = 50;               % numero de ciclos
 nivel_ruido = 0.01;    % nivel de ruido
 beta = zeros(P, 1);    % vetor dos coeficientes da regressão real
-n_lambda = 200;        % numero de lambdas
+n_lambda = 300;        % numero de lambdas
 
 
 %% CONSTRUINDO O CONJUNTO DE DADOS %%
@@ -29,20 +29,20 @@ beta(index) = randn(k,1);                            % valores de beta real
 Y = X*beta + nivel_ruido*randn(N,1);                 % adicionando ruido aleatorio           
 
 % calculo do lambda (1º teste)
-lambda_max = max(abs(X'*Y));                    % maior valor do vetor beta ideal
-lambdas = linspace(0, 2*lambda_max, n_lambda);  % vetor de lambdas  
+% lambda_max = max(abs(X'*Y));                    % maior valor do vetor beta ideal
+% lambdas = linspace(0, lambda_max, n_lambda);  % vetor de lambdas  
 
 % PADRONIZANDO as colunas da matriz X
 for i = 1:P,
-    X(:,i) = X(:,1) - mean(X(:,1));
+    X(:,i) = X(:,i) - mean(X(:,i));
 end
 
 % PADRONIZANDO o vetor de saida Y.
 Y = Y - mean(Y);
 
 % calculo do lambda (2º teste) 
-% lambda_max = max(abs(X'*Y));                        % maior valor do vetor beta ideal
-% vt_lambdas = linespace(0, 2*lambda_max, n_lambda);  % vetor de lambdas  
+lambda_max = max(abs(X'*Y));                        % maior valor do vetor beta ideal
+lambdas = linspace(0, lambda_max, n_lambda);        % vetor de lambdas  
 
    
 
@@ -50,10 +50,14 @@ Y = Y - mean(Y);
 
 mt_betas = zeros(n_lambda, P);      % calcula os valores do peso aleatoriamente 
 
-B = randn(P, 1);                    % vetor de pesos B calculado pelo algoritmo do Sub-gradiente iniciado zerado (LS, randn)
-% R = Y - X*B;                      % calculo do residuo para B inicial
-
+% laço percorre os lambdas
 for l = 1:n_lambda
+    
+    % valores iniciais
+    B = randn(P, 1);           % vetor de pesos B calculado pelo algoritmo do Sub-gradiente iniciado zerado (LS, randn)
+    % R = Y - X*B;             % calculo do residuo para B inicial
+    
+    % COORDENADA DESCENDENTE CICLICA
     
     % numero de ciclos
     for k = 1:m, 
@@ -88,7 +92,19 @@ for l = 1:n_lambda
 end        % fim do for p/ l
 
 plot(lambdas', mt_betas)
-xlim([0 1]);
-ylim([-1 1]);
-% pct = sum(abs(mt_betas),2)./sum(abs(mt_betas(l,:)));
+xlim([0 3]);
+xlabel('lambda (\lambda)');             % titulo do eixo-x
+ylabel('Coeficientes');                 % titulo do eixo-y
+title('LASSO PARA REGRESSÃO SIMPLES')   % Titulo do grafico
+
+% plotar os vetores de Beta em relação ao maior beta de cada vetor
+denominador = sum(abs(mt_betas(1,:)));
+pct = sum(abs(mt_betas),2)/denominador;
+figure;
+plot(pct, mt_betas);
+xlabel('\beta / \beta_{max}');             % titulo do eixo-x
+ylabel('Coeficientes');                 % titulo do eixo-y
+title('LASSO PARA REGRESSÃO SIMPLES')   % Titulo do grafico
+
+
 
